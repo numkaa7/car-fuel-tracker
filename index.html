@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style/main.css">
+    <link rel="stylesheet" href="style/dashboard.css">
+    <link rel="stylesheet" href="style/form.css">
+    <link rel="stylesheet" href="style/modals.css">
+    <link rel="stylesheet" href="style/cards.css">
+    <link rel="stylesheet" href="style/auto-page.css">
+    <title>Car-fuel-tracker</title>
+</head>
+<body>
+    
+<div class="app-container">
+        <!-- 1. Sidebar (Бокова панель) -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2><a href="#" class="logo-link">Auto<span>Log</span></a></h2>
+            </div>
+            <nav>
+                <a href="#" class="nav-link active" data-page="dashboard"><span class="material-symbols-outlined">dashboard</span> Dashboard</a>
+                <a href="#" class="nav-link" data-page="auto"><span class="material-symbols-outlined">directions_car</span> Моє Авто</a>
+                <a href="#" class="nav-link" data-page="history"><span class="material-symbols-outlined">history</span> Історія</a>
+                <a href="#" class="nav-link" data-page="settings"><span class="material-symbols-outlined">settings</span> Налаштування</a>
+            </nav>
+        </aside>
+
+        <!-- 2. Main Content (Основна частина) -->
+        <main class="main-content">
+            <header class="top-bar">
+                <h1>AutoLog</h1>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <!-- СЕЛЕКТОР АВТО -->
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <select id="car-selector" style="
+                            background: #1e293b;
+                            color: var(--accent-green);
+                            border: 1px solid var(--accent-green);
+                            padding: 8px 12px;
+                            border-radius: 6px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            min-width: 150px;
+                        ">
+                            <option value="">Виберіть авто</option>
+                        </select>
+                        <button id="add-car-btn" style="
+                            background: var(--accent-green);
+                            color: #000;
+                            border: none;
+                            padding: 8px 12px;
+                            border-radius: 6px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            font-size: 14px;
+                        ">+ Авто</button>
+                    </div>
+                    <div class="user-profile">
+                        <span id="car-info">Авто: не вибрано</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- DASHBOARD SECTION -->
+            <section id="dashboard" class="page active" data-page="dashboard">
+                <!-- 3. Stats Grid (Верхні картки як на фото) -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <p class="label">Середня витрата</p>
+                        <div class="value"><span id="avg-consumption">0.0</span> <small>л/100км</small></div>
+                    </div>
+                    <div class="stat-card">
+                        <p class="label">Витрати за місяць</p>
+                        <div class="value"><span id="monthly-spent">0</span> <small>грн</small></div>
+                    </div>
+                    <div class="stat-card">
+                        <p class="label">Пробіг</p>
+                        <div class="value"><span id="current-mileage">0</span> <small>км</small></div>
+                    </div>
+                </div>
+
+                <!-- 4. Form Section (Центральний великий віджет) -->
+                <section class="form-container">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+                        <!-- ФОРМА ЛІВОРУЧ -->
+                        <div class="form-card">
+                            <h3>Додати нову заправку</h3>
+                            <form id="fuel-form">
+                                <div class="input-group">
+                                    <label for="input-distance">Поточний пробіг (км)</label>
+                                    <input name="distance" type="number" id="input-distance" placeholder="напр. 125000" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="input-liters">Заправлено літрів</label>
+                                    <input  name="liters" type="number" id="input-liters" step="0.1" placeholder="напр. 45.5" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="input-price">Ціна за літр (грн)</label>
+                                    <input name="price" type="number" id="input-price" step="0.01" placeholder="напр. 54.90" required>
+                                </div>
+                                <button type="submit" class="btn-submit">Зберегти запис</button>
+                            </form>
+                        </div>
+                        
+                        <!-- ГРАФІК ПРАВОРУЧ -->
+                        <div style="
+                            background: linear-gradient(135deg, var(--card-bg) 0%, #1e2433 100%);
+                            border: 1px solid #2D333F;
+                            border-radius: 12px;
+                            padding: 20px;
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                        ">
+                            <h3 style="margin-bottom: 20px; color: var(--accent-green);">Витрати</h3>
+                            <canvas id="consumption-chart" style="max-height: 300px;"></canvas>
+                            
+                            <!-- КНОПКИ ФІЛЬТРАЦІЇ -->
+                            <div style="
+                                display: flex;
+                                gap: 10px;
+                                margin-top: 20px;
+                                justify-content: center;
+                            ">
+                                <button class="chart-filter-btn" data-range="week" style="
+                                    background: var(--accent-green);
+                                    color: #000;
+                                    border: none;
+                                    padding: 8px 16px;
+                                    border-radius: 6px;
+                                    cursor: pointer;
+                                    font-size: 12px;
+                                    font-weight: 600;
+                                    transition: all 0.2s;
+                                " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                                    Тиждень
+                                </button>
+                                <button class="chart-filter-btn" data-range="month" style="
+                                    background: #64748b;
+                                    color: #fff;
+                                    border: none;
+                                    padding: 8px 16px;
+                                    border-radius: 6px;
+                                    cursor: pointer;
+                                    font-size: 12px;
+                                    font-weight: 600;
+                                    transition: all 0.2s;
+                                " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                                    Місяць
+                                </button>
+                                <button class="chart-filter-btn" data-range="year" style="
+                                    background: #64748b;
+                                    color: #fff;
+                                    border: none;
+                                    padding: 8px 16px;
+                                    border-radius: 6px;
+                                    cursor: pointer;
+                                    font-size: 12px;
+                                    font-weight: 600;
+                                    transition: all 0.2s;
+                                " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                                    Рік
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- AUTO SECTION (МОЄ АВТО) -->
+            <section id="auto" class="page" data-page="auto">
+                <h2 style="color: var(--accent-green); margin-bottom: 20px;">🚗 Моє авто</h2>
+                <div id="auto-content" style="display: grid; gap: 20px;">
+                    <!-- Тут буде рендеритись вміст через ui.js -->
+                </div>
+            </section>
+
+            <!-- HISTORY SECTION -->
+            <section id="history" class="page" data-page="history">
+                <h3>Історія заправок</h3>
+                <div id="history-list">
+                    
+                </div>
+            </section>
+
+            <!-- SETTINGS SECTION -->
+            <section id="settings" class="page" data-page="settings">
+                <h2 style="color: var(--accent-green); margin-bottom: 20px;">⚙️ Налаштування</h2>
+                
+                <!-- TRASH/RESTORE -->
+                <div style="
+                    background: linear-gradient(135deg, var(--card-bg) 0%, #1e2433 100%);
+                    border: 1px solid #2d3a4f;
+                    border-radius: 12px;
+                    padding: 20px;
+                    margin-bottom: 20px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                ">
+                    <h3 style="color: var(--accent-green); margin-bottom: 16px;">🗑️ Видалені авто</h3>
+                    <div id="trash-container">
+                        <!-- Тут буде список видалених авто -->
+                    </div>
+                </div>
+                
+                <!-- CLEAR ALL DATA -->
+                <div style="
+                    background: linear-gradient(135deg, var(--card-bg) 0%, #1e2433 100%);
+                    border: 1px solid #2d3a4f;
+                    border-radius: 12px;
+                    padding: 20px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                ">
+                    <h3 style="color: #ef4444; margin-bottom: 16px;">⚠️ Небезпечна зона</h3>
+                    <button id="clear-data-btn" style="
+                        background: #ef4444;
+                        color: #fff;
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: 6px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        font-size: 14px;
+                    ">Видалити ВСІ дані</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="js/storage.js"></script>
+    <script type="module" src="js/calculations.js"></script>
+    <script type="module" src="js/ui.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
