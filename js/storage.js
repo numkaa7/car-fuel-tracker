@@ -128,7 +128,7 @@ export function setActiveCar(carId) {
     return false;
 }
 
-export function addCar(brand, model, year, engine, fuelType) {
+export function addCar(brand, model, year, engine, fuelType, oilInterval = 10000, filtersInterval = 15000) {
     const newId = cars.length > 0 ? Math.max(...cars.map(c => c.id)) + 1 : 1;
     const newCar = {
         id: newId,
@@ -141,12 +141,12 @@ export function addCar(brand, model, year, engine, fuelType) {
         maintenance: {
             oil: {
                 lastReplaced: 0,
-                interval: 10000,
+                interval: parseInt(oilInterval) || 10000,
                 cost: 500
             },
             filters: {
                 lastReplaced: 0,
-                interval: 15000,
+                interval: parseInt(filtersInterval) || 15000,
                 cost: 300
             }
         }
@@ -156,7 +156,7 @@ export function addCar(brand, model, year, engine, fuelType) {
     return newCar;
 }
 
-export function updateCar(carId, brand, model, year, engine, fuelType) {
+export function updateCar(carId, brand, model, year, engine, fuelType, oilInterval, filtersInterval) {
     const car = cars.find(c => c.id === carId);
     if (car) {
         car.brand = brand;
@@ -164,6 +164,8 @@ export function updateCar(carId, brand, model, year, engine, fuelType) {
         car.year = year;
         car.engine = engine;
         car.fuelType = fuelType;
+        if (oilInterval) car.maintenance.oil.interval = parseInt(oilInterval);
+        if (filtersInterval) car.maintenance.filters.interval = parseInt(filtersInterval);
         saveAll();
         return true;
     }

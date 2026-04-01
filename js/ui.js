@@ -1,7 +1,26 @@
 import { records, cars, activeCar, saveAll, setActiveCar, addCar, updateCar, deleteCar, restoreCarFromTrash, getActiveCar, getActiveCarRecords, trash } from './storage.js';
 import { totalFuel, avgConsumption, getConsumptionColor, calculateTCO, getCurrentMileage, getMaintenanceStatus, getMaintenanceColor } from './calculations.js';
+import { validateBrand, validateModel, validateYear, validateEngine, validateServiceInterval, validateCarData, validateLastReplaced } from './validation.js';
 
 console.log('UI loaded. Cars:', cars, 'ActiveCar:', activeCar);
+
+// ==================== МОБІЛЬНЕ МЕНЮ ====================
+
+const menuToggle = document.getElementById('menu-toggle');
+const navMobile = document.getElementById('nav-mobile');
+
+if (menuToggle && navMobile) {
+    menuToggle.addEventListener('click', () => {
+        navMobile.classList.toggle('active');
+    });
+}
+
+// Закривання меню при натисканні на посилання
+document.querySelectorAll('.nav-mobile .nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+        navMobile.classList.remove('active');
+    });
+});
 
 // Знаходимо елементи в HTML
 const monthlySpentElement = document.getElementById('monthly-spent');
@@ -9,7 +28,6 @@ const currentMileageElement = document.getElementById('current-mileage');
 const avgConsumptionElement = document.getElementById('avg-consumption');
 const carSelector = document.getElementById('car-selector');
 const addCarBtn = document.getElementById('add-car-btn');
-const carInfoElement = document.getElementById('car-info');
 const autoContent = document.getElementById('auto-content');
 
 // Chart.js
@@ -24,7 +42,7 @@ function initializeCarSelector() {
     cars.forEach(car => {
         const option = document.createElement('option');
         option.value = car.id;
-        option.textContent = `${car.brand} ${car.model}`;
+        option.textContent = `${car.brand} ${car.model} (${car.year})`;
         if (car.id === activeCar) {
             option.selected = true;
         }
@@ -37,7 +55,6 @@ carSelector.addEventListener('change', (e) => {
     const carId = parseInt(e.target.value);
     if (carId) {
         setActiveCar(carId);
-        updateCarInfo();
         updateDisplay();
         
         // 🔄 Оновлюємо поточну сторінку в реальному часі
@@ -59,15 +76,6 @@ carSelector.addEventListener('change', (e) => {
 addCarBtn.addEventListener('click', () => {
     openAddCarModal();
 });
-
-function updateCarInfo() {
-    const car = getActiveCar();
-    if (car) {
-        carInfoElement.textContent = `🚗 ${car.brand} ${car.model} (${car.year})`;
-    } else {
-        carInfoElement.textContent = '🚗 Авто: не вибрано';
-    }
-}
 
 // ==================== МОДАЛЬНЕ ВІКНО ДОДАВАННЯ АВТО ====================
 
@@ -107,6 +115,19 @@ function openAddCarModal() {
                     <option value="Газ">Газ</option>
                 </select>
             </div>
+
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-color);">
+            <h3 style="font-size: 16px; margin-bottom: 15px;">⚙️ Дані обслуговування</h3>
+
+            <div class="input-group">
+                <label>Інтервал заміни масла (км)</label>
+                <input type="number" id="modal-oil-interval" placeholder="10000" value="10000">
+            </div>
+
+            <div class="input-group">
+                <label>Інтервал заміни фільтрів (км)</label>
+                <input type="number" id="modal-filters-interval" placeholder="15000" value="15000">
+            </div>
             
             <div class="modal-buttons">
                 <button id="modal-save" class="modal-save-btn">Зберегти</button>
@@ -118,21 +139,30 @@ function openAddCarModal() {
     document.body.appendChild(modal);
     
     document.getElementById('modal-save').addEventListener('click', () => {
-        const brand = document.getElementById('modal-brand').value.trim();
-        const model = document.getElementById('modal-model').value.trim();
-        const year = parseInt(document.getElementById('modal-year').value) || new Date().getFullYear();
-        const engine = document.getElementById('modal-engine').value.trim();
-        const fuelType = document.getElementById('modal-fuel').value;
+        const carData = {
+            brand: document.getElementById('modal-brand').value,
+            model: document.getElementById('modal-model').value,
+            year: document.getElementById('modal-year').value,
+            engine: document.getElementById('modal-engine').value,
+            oilInterval: document.getElementById('modal-oil-interval').value,
+            filtersInterval: document.getElementById('modal-filters-interval').value
+        };
         
-        if (!brand) {
-            alert('Будь ласка, введіть марку авто');
+        const validation = validateCarData(carData);
+        
+        if (!validation.isValid) {
+            alert(validation.errors.join('\n'));
             return;
         }
         
-        addCar(brand, model, year, engine, fuelType);
+        const fuelType = document.getElementById('modal-fuel').value;
+        const year = parseInt(carData.year);
+        const oilInterval = parseInt(carData.oilInterval) || 10000;
+        const filtersInterval = parseInt(carData.filtersInterval) || 15000;
+        
+        addCar(carData.brand.trim(), carData.model.trim(), year, carData.engine.trim(), fuelType, oilInterval, filtersInterval);
         initializeCarSelector();
         setActiveCar(cars[cars.length - 1].id);
-        updateCarInfo();
         updateDisplay();
         modal.remove();
     });
@@ -223,7 +253,6 @@ window.restoreCarFromTrash = function(carId) {
         restoreCarFromTrash(carId);
         initializeCarSelector();
         setActiveCar(carId);
-        updateCarInfo();
         updateDisplay();
         initializeSettings();
     }
@@ -327,14 +356,20 @@ function initializeAutoPage() {
             <div class="service-item oil${oilStatus.status !== 'ok' ? (oilStatus.status === 'warning' ? '-warning' : oilStatus.status === 'overdue' ? '-overdue' : '-initial') : ''}">
                 <h4>🛢️ Масло</h4>
                 ${renderProgressBar(oilStatus, 'oil')}
-                <button onclick="window.updateMaintenance(${car.id}, 'oil', ${currentMileage})" class="btn-maintenance">✅ Замінено</button>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button onclick="window.updateMaintenance(${car.id}, 'oil', ${currentMileage})" class="btn-maintenance">✅ Замінено</button>
+                    <button onclick="window.editMaintenance(${car.id}, 'oil')" class="btn-maintenance">✏️ Редагувати</button>
+                </div>
             </div>
             
             <!-- ФІЛЬТРИ -->
             <div class="service-item oil${filterStatus.status !== 'ok' ? (filterStatus.status === 'warning' ? '-warning' : filterStatus.status === 'overdue' ? '-overdue' : '-initial') : ''}">
                 <h4>🔍 Фільтри</h4>
                 ${renderProgressBar(filterStatus, 'filters')}
-                <button onclick="window.updateMaintenance(${car.id}, 'filters', ${currentMileage})" class="btn-maintenance">✅ Замінено</button>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button onclick="window.updateMaintenance(${car.id}, 'filters', ${currentMileage})" class="btn-maintenance">✅ Замінено</button>
+                    <button onclick="window.editMaintenance(${car.id}, 'filters')" class="btn-maintenance">✏️ Редагувати</button>
+                </div>
             </div>
         </div>
         
@@ -357,22 +392,103 @@ function initializeAutoPage() {
 
 // ==================== ФУНКЦІЇ ВИДАЛЕННЯ/РЕДАГУВАННЯ ====================
 
-window.editCar = function(carId) {
+function openEditCarModal(carId) {
     const car = cars.find(c => c.id === carId);
     if (!car) return;
     
-    const newBrand = prompt('Марка:', car.brand);
-    if (!newBrand) return;
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
     
-    const newModel = prompt('Модель:', car.model);
-    const newYear = parseInt(prompt('Рік:', car.year.toString())) || car.year;
-    const newEngine = prompt('Об\'єм двигуна:', car.engine);
-    const newFuelType = prompt('Тип пального (Бензин/Дизель/Газ):', car.fuelType);
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h2>Редагувати авто</h2>
+            
+            <div class="input-group">
+                <label>Марка</label>
+                <input type="text" id="modal-brand" value="${car.brand}">
+            </div>
+            
+            <div class="input-group">
+                <label>Модель</label>
+                <input type="text" id="modal-model" value="${car.model}">
+            </div>
+            
+            <div class="input-group">
+                <label>Рік</label>
+                <input type="number" id="modal-year" value="${car.year}">
+            </div>
+            
+            <div class="input-group">
+                <label>Об'єм двигуна (л)</label>
+                <input type="number" id="modal-engine" value="${car.engine}" step="0.1">
+            </div>
+            
+            <div class="input-group">
+                <label>Тип пального</label>
+                <select id="modal-fuel">
+                    <option value="Бензин" ${car.fuelType === 'Бензин' ? 'selected' : ''}>Бензин</option>
+                    <option value="Дизель" ${car.fuelType === 'Дизель' ? 'selected' : ''}>Дизель</option>
+                    <option value="Газ" ${car.fuelType === 'Газ' ? 'selected' : ''}>Газ</option>
+                </select>
+            </div>
+
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border-color);">
+            <h3 style="font-size: 16px; margin-bottom: 15px;">⚙️ Дані обслуговування</h3>
+
+            <div class="input-group">
+                <label>Інтервал заміни масла (км)</label>
+                <input type="number" id="modal-oil-interval" value="${car.maintenance.oil.interval}">
+            </div>
+
+            <div class="input-group">
+                <label>Інтервал заміни фільтрів (км)</label>
+                <input type="number" id="modal-filters-interval" value="${car.maintenance.filters.interval}">
+            </div>
+            
+            <div class="modal-buttons">
+                <button id="modal-save" class="modal-save-btn">Зберегти</button>
+                <button id="modal-cancel" class="modal-cancel-btn">Скасувати</button>
+            </div>
+        </div>
+    `;
     
-    updateCar(carId, newBrand, newModel, newYear, newEngine, newFuelType);
-    initializeCarSelector();
-    updateCarInfo();
-    initializeAutoPage();
+    document.body.appendChild(modal);
+    
+    document.getElementById('modal-save').addEventListener('click', () => {
+        const carData = {
+            brand: document.getElementById('modal-brand').value,
+            model: document.getElementById('modal-model').value,
+            year: document.getElementById('modal-year').value,
+            engine: document.getElementById('modal-engine').value,
+            oilInterval: document.getElementById('modal-oil-interval').value,
+            filtersInterval: document.getElementById('modal-filters-interval').value
+        };
+        
+        const validation = validateCarData(carData);
+        
+        if (!validation.isValid) {
+            alert(validation.errors.join('\n'));
+            return;
+        }
+        
+        const fuelType = document.getElementById('modal-fuel').value;
+        const year = parseInt(carData.year);
+        const oilInterval = parseInt(carData.oilInterval) || car.maintenance.oil.interval;
+        const filtersInterval = parseInt(carData.filtersInterval) || car.maintenance.filters.interval;
+        
+        updateCar(carId, carData.brand.trim(), carData.model.trim(), year, carData.engine.trim(), fuelType, oilInterval, filtersInterval);
+        initializeCarSelector();
+        initializeAutoPage();
+        modal.remove();
+    });
+    
+    document.getElementById('modal-cancel').addEventListener('click', () => {
+        modal.remove();
+    });
+}
+
+window.editCar = function(carId) {
+    openEditCarModal(carId);
 };
 
 window.deleteCar = function(carId) {
@@ -382,7 +498,6 @@ window.deleteCar = function(carId) {
     if (confirm(`Видалити авто "${car.brand} ${car.model}"? Дані можна буде відновити в Trash.`)) {
         deleteCar(carId);
         initializeCarSelector();
-        updateCarInfo();
         updateDisplay();
         showPage('dashboard');
     }
@@ -675,6 +790,75 @@ function updateConsumptionChart() {
 
 // ==================== ВИДАЛЕННЯ ЗАПИСУ ====================
 
+window.editMaintenance = function(carId, serviceType) {
+    const car = cars.find(c => c.id === carId);
+    if (!car) return;
+    
+    const serviceName = serviceType === 'oil' ? 'Масло' : 'Фільтри';
+    const currentInterval = car.maintenance[serviceType].interval;
+    const lastReplaced = car.maintenance[serviceType].lastReplaced;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h2>Редагувати обслуговування: ${serviceName}</h2>
+            
+            <div class="input-group">
+                <label>Інтервал (км)</label>
+                <input type="number" id="edit-interval" value="${currentInterval}" placeholder="10000">
+                <small style="color: var(--text-muted); margin-top: 5px; display: block;">
+                    Через скільки км потрібна наступна заміна
+                </small>
+            </div>
+            
+            <div class="input-group">
+                <label>Останній пробіг при заміні (км)</label>
+                <input type="number" id="edit-last-replaced" value="${lastReplaced}" placeholder="0">
+                <small style="color: var(--text-muted); margin-top: 5px; display: block;">
+                    На якому км була остання заміна (0 = ніколи не міняли)
+                </small>
+            </div>
+            
+            <div class="modal-buttons">
+                <button id="edit-save" class="modal-save-btn">Зберегти</button>
+                <button id="edit-cancel" class="modal-cancel-btn">Скасувати</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    document.getElementById('edit-save').addEventListener('click', () => {
+        const newInterval = parseInt(document.getElementById('edit-interval').value);
+        const newLastReplaced = parseInt(document.getElementById('edit-last-replaced').value) || 0;
+        
+        const intervalValidation = validateServiceInterval(newInterval, serviceType);
+        if (!intervalValidation.isValid) {
+            alert(intervalValidation.message);
+            return;
+        }
+        
+        const lastReplacedValidation = validateLastReplaced(newLastReplaced);
+        if (!lastReplacedValidation.isValid) {
+            alert(lastReplacedValidation.message);
+            return;
+        }
+        
+        car.maintenance[serviceType].interval = newInterval;
+        car.maintenance[serviceType].lastReplaced = newLastReplaced;
+        saveAll();
+        initializeAutoPage();
+        modal.remove();
+        alert(`✅ Параметри ${serviceName.toLowerCase()} оновлено!`);
+    });
+    
+    document.getElementById('edit-cancel').addEventListener('click', () => {
+        modal.remove();
+    });
+};
+
 window.updateMaintenance = function(carId, serviceType, currentMileage) {
     const car = cars.find(c => c.id === carId);
     if (!car) return;
@@ -718,11 +902,10 @@ export function updateDisplay() {
         avgConsumptionElement.textContent = avgConsumption(activeRecords);
     }
     
-    updateCarInfo();
+   
     updateConsumptionChart();
 }
 
 // Ініціалізація при завантаженні сторінки
 initializeCarSelector();
-updateCarInfo();
 updateDisplay();

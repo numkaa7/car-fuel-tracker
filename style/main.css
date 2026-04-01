@@ -45,8 +45,6 @@ a {
 
 .nav-link {
     text-decoration: none;
-    color: var(--text-muted);
-    transition: var(--transition);
     cursor: pointer;
 }
 
@@ -62,4 +60,188 @@ a {
 .logo-link {
     cursor: pointer; /* Тільки на посиланні лого */
     display: inline-block; /* Щоб курсор змінювався тільки на тексті */
+}
+/* ==================== TOP BAR / HEADER ==================== */
+
+.top-bar {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.header-top {
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(163, 230, 53, 0.2);
+}
+
+.logo-link-mobile {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-green);
+    display: none;
+}
+
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--accent-green);
+    padding: 0;
+    line-height: 1;
+}
+
+.header-middle {
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    justify-content: flex-end;
+}
+
+#car-selector {
+    
+    background: #1e293b;
+    color: var(--accent-green);
+    border: 1px solid var(--accent-green);
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#add-car-btn {
+    background: var(--accent-green);
+    color: #000;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+#add-car-btn:hover {
+    background: #b3f123;
+    transform: translateY(-2px);
+}
+
+/* МОБІЛЬНЕ МЕНЮ */
+.nav-mobile {
+    display: flex;
+    flex-direction: column;
+    border-top: 2px solid var(--accent-green);
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.4s ease;
+}
+
+.nav-mobile.active {
+    max-height: 500px;
+    opacity: 1;
+    padding: 12px 16px;
+}
+
+.nav-mobile .nav-link {
+    display: block;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(163, 230, 53, 0.1);
+    color: var(--text-muted);
+    transition: var(--transition);
+}
+
+
+.nav-mobile .nav-link:hover,
+.nav-mobile .nav-link.active {
+    color: var(--accent-green);
+    padding-left: 8px;
+}
+
+/* ==================== MEDIA QUERIES ==================== */
+
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        display: none;
+    }
+    
+    .main-content {
+        width: 100%;
+        margin-left: 0;
+    }
+    
+    .header-top {
+        display: flex;
+    }
+    
+    .logo-link-mobile {
+        display: block;
+    }
+    
+    .menu-toggle {
+        display: block;
+    }
+    
+    .header-middle {
+        padding: 12px 16px;
+        gap: 10px;
+    }
+    
+    #car-selector,
+    #add-car-btn {
+        font-size: 13px;
+        padding: 9px 10px;
+    }
+    
+    .header-bottom {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-bar {
+        gap: 0;
+    }
+    
+    .header-top {
+        padding: 10px 12px;
+    }
+    
+    .logo-link-mobile {
+        font-size: 16px;
+    }
+    
+    .menu-toggle {
+        font-size: 24px;
+    }
+    
+    .header-middle {
+        flex-direction: column;
+        padding: 10px 12px;
+        gap: 8px;
+    }
+    
+    #car-selector,
+    #add-car-btn {
+        width: 100%;
+        font-size: 12px;
+        padding: 8px;
+    }
+    
+    .header-bottom {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
 }

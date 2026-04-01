@@ -20,48 +20,35 @@
                 <h2><a href="#" class="logo-link">Auto<span>Log</span></a></h2>
             </div>
             <nav>
-                <a href="#" class="nav-link active" data-page="dashboard"><span class="material-symbols-outlined">dashboard</span> Dashboard</a>
-                <a href="#" class="nav-link" data-page="auto"><span class="material-symbols-outlined">directions_car</span> Моє Авто</a>
-                <a href="#" class="nav-link" data-page="history"><span class="material-symbols-outlined">history</span> Історія</a>
-                <a href="#" class="nav-link" data-page="settings"><span class="material-symbols-outlined">settings</span> Налаштування</a>
+                <a href="#" class="nav-link active" data-page="dashboard"><span class="material-symbols-outlined">Dashboard</span></a>
+                <a href="#" class="nav-link" data-page="auto"><span class="material-symbols-outlined">Моє Авто</span></a>
+                <a href="#" class="nav-link" data-page="history"><span class="material-symbols-outlined">Історія</span></a>
+                <a href="#" class="nav-link" data-page="settings"><span class="material-symbols-outlined">Налаштування</span></a>
             </nav>
         </aside>
 
         <!-- 2. Main Content (Основна частина) -->
         <main class="main-content">
             <header class="top-bar">
-                <h1>AutoLog</h1>
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <!-- СЕЛЕКТОР АВТО -->
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <select id="car-selector" style="
-                            background: #1e293b;
-                            color: var(--accent-green);
-                            border: 1px solid var(--accent-green);
-                            padding: 8px 12px;
-                            border-radius: 6px;
-                            font-weight: 600;
-                            cursor: pointer;
-                            min-width: 150px;
-                        ">
-                            <option value="">Виберіть авто</option>
-                        </select>
-                        <button id="add-car-btn" style="
-                            background: var(--accent-green);
-                            color: #000;
-                            border: none;
-                            padding: 8px 12px;
-                            border-radius: 6px;
-                            font-weight: 600;
-                            cursor: pointer;
-                            font-size: 14px;
-                        ">+ Авто</button>
-                    </div>
-                    <div class="user-profile">
-                        <span id="car-info">Авто: не вибрано</span>
-                    </div>
+                <div class="header-top">
+                    <a href="#" class="logo-link-mobile">⛽ Fuel Tracker</a>
+                    <button id="menu-toggle" class="menu-toggle">☰</button>
+                </div>
+                
+                <div class="header-middle">
+                    <select id="car-selector">
+                        <option value="">Виберіть авто</option>
+                    </select>
+                    <button id="add-car-btn">+ Додати авто</button>
                 </div>
             </header>
+            
+            <nav class="nav-mobile" id="nav-mobile">
+                <a href="#" class="nav-link" data-page="dashboard">📊 Dashboard</a>
+                <a href="#" class="nav-link" data-page="auto">🚗 Мої авто</a>
+                <a href="#" class="nav-link" data-page="history">📋 Історія</a>
+                <a href="#" class="nav-link" data-page="settings">⚙️ Налаштування</a>
+            </nav>
 
             <!-- DASHBOARD SECTION -->
             <section id="dashboard" class="page active" data-page="dashboard">
@@ -83,7 +70,7 @@
 
                 <!-- 4. Form Section (Центральний великий віджет) -->
                 <section class="form-container">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+                    <div class="form-grid">
                         <!-- ФОРМА ЛІВОРУЧ -->
                         <div class="form-card">
                             <h3>Додати нову заправку</h3>
@@ -105,60 +92,19 @@
                         </div>
                         
                         <!-- ГРАФІК ПРАВОРУЧ -->
-                        <div style="
-                            background: linear-gradient(135deg, var(--card-bg) 0%, #1e2433 100%);
-                            border: 1px solid #2D333F;
-                            border-radius: 12px;
-                            padding: 20px;
-                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                        ">
-                            <h3 style="margin-bottom: 20px; color: var(--accent-green);">Витрати</h3>
-                            <canvas id="consumption-chart" style="max-height: 300px;"></canvas>
+                        <div class="chart-card">
+                            <h3 class="chart-title">Витрати</h3>
+                            <canvas id="consumption-chart"></canvas>
                             
                             <!-- КНОПКИ ФІЛЬТРАЦІЇ -->
-                            <div style="
-                                display: flex;
-                                gap: 10px;
-                                margin-top: 20px;
-                                justify-content: center;
-                            ">
-                                <button class="chart-filter-btn" data-range="week" style="
-                                    background: var(--accent-green);
-                                    color: #000;
-                                    border: none;
-                                    padding: 8px 16px;
-                                    border-radius: 6px;
-                                    cursor: pointer;
-                                    font-size: 12px;
-                                    font-weight: 600;
-                                    transition: all 0.2s;
-                                " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                            <div class="chart-filters">
+                                <button class="chart-filter-btn chart-filter-active" data-range="week">
                                     Тиждень
                                 </button>
-                                <button class="chart-filter-btn" data-range="month" style="
-                                    background: #64748b;
-                                    color: #fff;
-                                    border: none;
-                                    padding: 8px 16px;
-                                    border-radius: 6px;
-                                    cursor: pointer;
-                                    font-size: 12px;
-                                    font-weight: 600;
-                                    transition: all 0.2s;
-                                " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                                <button class="chart-filter-btn" data-range="month">
                                     Місяць
                                 </button>
-                                <button class="chart-filter-btn" data-range="year" style="
-                                    background: #64748b;
-                                    color: #fff;
-                                    border: none;
-                                    padding: 8px 16px;
-                                    border-radius: 6px;
-                                    cursor: pointer;
-                                    font-size: 12px;
-                                    font-weight: 600;
-                                    transition: all 0.2s;
-                                " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                                <button class="chart-filter-btn" data-range="year">
                                     Рік
                                 </button>
                             </div>

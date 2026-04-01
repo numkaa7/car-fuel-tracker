@@ -1,5 +1,6 @@
 import { records, saveAll, activeCar, getActiveCarRecords } from './storage.js';
 import { updateDisplay } from './ui.js';
+import { validateFuelData } from './validation.js';
 
 const form = document.getElementById('fuel-form');
 form.addEventListener('submit', handleSubmit);
@@ -14,32 +15,32 @@ function handleSubmit(e) {
   }
   
   const formData = new FormData(form);
-  const data = {
-    carId: activeCar,  // 🚗 ДОДАЄМО carId!
-    distance: +formData.get('distance'),
-    liters: +formData.get('liters'),
-    price: +formData.get('price'),
-    date: new Date().toISOString()
+  const fuelData = {
+    distance: parseFloat(formData.get('distance')),
+    liters: parseFloat(formData.get('liters')),
+    price: parseFloat(formData.get('price'))
   };
 
-  if (data.distance <= 0 || data.liters <= 0 || data.price <= 0) {
-    alert('Будь ласка, введіть коректні числові значення для всіх полів.');
+  const activeCarRecords = getActiveCarRecords();
+  const lastDistance = activeCarRecords.length > 0 ? activeCarRecords[activeCarRecords.length - 1].distance : null;
+
+  const validation = validateFuelData(fuelData, lastDistance);
+  
+  if (!validation.isValid) {
+    alert(validation.errors.join('\n'));
     return;
   }
 
-  // Отримуємо тільки записи активного авто для перевірки
-  const activeCarRecords = getActiveCarRecords();
-  
-  if (activeCarRecords.length > 0) {
-    const lastRecord = activeCarRecords[activeCarRecords.length - 1];
-    if (data.distance <= lastRecord.distance) {
-      alert(`Помилка! Пробіг не може бути меншим або таким самим, як попередній (${lastRecord.distance} км).`);
-      return;
-    }
-  }
+  const data = {
+    carId: activeCar,  
+    distance: fuelData.distance,
+    liters: fuelData.liters,
+    price: fuelData.price,
+    date: new Date().toISOString()
+  };
 
   records.push(data);
-  saveAll();  // 🔄 ЗМІНИЛИ saveRecords() на saveAll()
+  saveAll();  
   updateDisplay();
   form.reset();
 }
