@@ -4,6 +4,20 @@ import { validateBrand, validateModel, validateYear, validateEngine, validateSer
 
 console.log('UI loaded. Cars:', cars, 'ActiveCar:', activeCar);
 
+// ==================== БЛОКУВАННЯ СКРОЛУ МОДАЛОК ====================
+
+function disableBodyScroll() {
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+}
+
+function enableBodyScroll() {
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+}
+
 // ==================== МОБІЛЬНЕ МЕНЮ ====================
 
 const menuToggle = document.getElementById('menu-toggle');
@@ -137,6 +151,15 @@ function openAddCarModal() {
     `;
     
     document.body.appendChild(modal);
+    disableBodyScroll();
+    
+    // Закриття при кліку на фон (overlay)
+    modal.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay')) {
+            enableBodyScroll();
+            modal.remove();
+        }
+    });
     
     document.getElementById('modal-save').addEventListener('click', () => {
         const carData = {
@@ -164,10 +187,12 @@ function openAddCarModal() {
         initializeCarSelector();
         setActiveCar(cars[cars.length - 1].id);
         updateDisplay();
+        enableBodyScroll();
         modal.remove();
     });
     
     document.getElementById('modal-cancel').addEventListener('click', () => {
+        enableBodyScroll();
         modal.remove();
     });
 }
@@ -453,6 +478,15 @@ function openEditCarModal(carId) {
     `;
     
     document.body.appendChild(modal);
+    disableBodyScroll();
+    
+    // Закриття при кліку на фон (overlay)
+    modal.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay')) {
+            enableBodyScroll();
+            modal.remove();
+        }
+    });
     
     document.getElementById('modal-save').addEventListener('click', () => {
         const carData = {
@@ -479,10 +513,12 @@ function openEditCarModal(carId) {
         updateCar(carId, carData.brand.trim(), carData.model.trim(), year, carData.engine.trim(), fuelType, oilInterval, filtersInterval);
         initializeCarSelector();
         initializeAutoPage();
+        enableBodyScroll();
         modal.remove();
     });
     
     document.getElementById('modal-cancel').addEventListener('click', () => {
+        enableBodyScroll();
         modal.remove();
     });
 }
@@ -829,6 +865,15 @@ window.editMaintenance = function(carId, serviceType) {
     `;
     
     document.body.appendChild(modal);
+    disableBodyScroll();
+    
+    // Закритття при кліку на фон
+    modal.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay')) {
+            enableBodyScroll();
+            modal.remove();
+        }
+    });
     
     document.getElementById('edit-save').addEventListener('click', () => {
         const newInterval = parseInt(document.getElementById('edit-interval').value);
@@ -850,11 +895,13 @@ window.editMaintenance = function(carId, serviceType) {
         car.maintenance[serviceType].lastReplaced = newLastReplaced;
         saveAll();
         initializeAutoPage();
+        enableBodyScroll();
         modal.remove();
         alert(`✅ Параметри ${serviceName.toLowerCase()} оновлено!`);
     });
     
     document.getElementById('edit-cancel').addEventListener('click', () => {
+        enableBodyScroll();
         modal.remove();
     });
 };
