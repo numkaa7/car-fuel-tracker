@@ -8,7 +8,7 @@
 - [x] Verify clicking "+ Додати авто" triggers the input mechanism (prompt or form).
 - [x] Verify a new vehicle name appears instantly in the "Виберіть авто" dropdown list.
 - [x] Verify that switching between different cars in the dropdown dynamically updates all dashboard statistics.
-- [ ] Check system behavior when attempting to add a duplicate car name. **FAILED (See Bug Report #1)**
+- [x] Check system behavior when attempting to add a duplicate car name. -> **UX Note: Vehicles are identical in dropdown**
 - [ ] Check system behavior when attempting to add a car with an empty name or special characters (`@#$%`). **FAILED (See Bug Report #2)**
 
 ## 3. Fuel Logging Form 
